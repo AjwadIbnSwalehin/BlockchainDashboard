@@ -1,32 +1,71 @@
 from cryptocurrency import Cryptocurrency
 import matplotlib.pyplot as plt
+from user import UserManager
 
 class Portfolio:
-    def __init__(self):
-        self.holdings = {}  # Dictionary to store {symbol: [crypto, quantity]}
+    def __init__(self, user_email):
+        self.user_email = user_email
+        self.user_manager = UserManager() 
+        self.holdings = self.load_portfolio()
+        self.coins = ["bitcoin", "ethereum", "tether", "solana", "dogecoin", "cardano"]
+        
+    def load_portfolio(self):
+        # Load portfolio from UserManager for the current user
+        portfolio_data = self.user_manager.users[self.user_email].get('portfolio', {})
+        
+        # Debugging: Check if the portfolio data is empty
+        if not portfolio_data:
+            print(f"No portfolio data found for {self.user_email}")
+            return {}
+
+        print(f"Portfolio data for {self.user_email}: {portfolio_data}")  # Debug line
+        return portfolio_data
     
     def addCrypto(self, crypto, quantity=1):
-        if crypto.symbol in self.holdings:
-            # If already present, increase the quantity
-            self.holdings[crypto.symbol][1] += quantity
+        if crypto in self.coins:
+            if crypto in self.holdings:
+                # If already present, increase the quantity
+                self.holdings[crypto] += quantity
+            else:
+                # If not present, add the cryptocurrency with the initial quantity
+                self.holdings[crypto] = quantity
+                
+            self.user_manager.users[self.user_email]['portfolio'] = self.holdings
+            self.user_manager.save_users()  # Save changes to CSV
+        
         else:
-            # If not present, add the cryptocurrency with the initial quantity
-            self.holdings[crypto.symbol] = [crypto, quantity]
+            print("You can only trade: ")
+            for coin in self.coins:
+                print(coin)
     
-    def removeCrypto(self, symbol, quantity=1):
-        if symbol in self.holdings:
-            current_quantity = self.holdings[symbol][1]
+    def removeCrypto(self, crypto, quantity=1):
+        if crypto in self.holdings:
+            current_quantity = self.holdings[crypto]
             if current_quantity <= quantity:
                 # Remove the crypto if the quantity to remove is greater or equal to what is held
-                del self.holdings[symbol]
+                del self.holdings[crypto]
             else:
                 # Reduce the quantity
-                self.holdings[symbol][1] -= quantity
+                self.holdings[crypto] -= quantity
+            self.user_manager.users[self.user_email]['portfolio'] = self.holdings
+            self.user_manager.save_users()  # Save changes to CSV
         else:
-            print(f"{symbol} is not in your portfolio")
+            print(f"{crypto} is not in your portfolio")
     
     def calculateTotalValue(self):
-        total_value = sum(crypto.getPrice() * quantity for crypto, quantity in self.holdings.values())
+        total_value = 0  # Initialize total value
+        print(f"self.holdings.items: {self.holdings.items()}")
+
+        for crypto_name, quantity in self.holdings.items():
+            # Create a Cryptocurrency object for each symbol
+            crypto = Cryptocurrency(crypto_name)
+            
+            # Get the price of the cryptocurrency
+            price = crypto.getPrice()
+            
+            # Calculate the value for the current cryptocurrency and add to total_value
+            total_value += price * quantity
+            
         return total_value
     
     def analytics(self):
@@ -37,10 +76,10 @@ class Portfolio:
         # Calculate portfolio allocation
         labels = []
         values = []
-        for symbol, (crypto, quantity) in self.holdings.items():
-            value = crypto.getPrice() * quantity
-            labels.append(f"{crypto.name} ({crypto.symbol})")
-            values.append(value)
+        for crypto_name, quantity in self.holdings.items():
+            crypto = Cryptocurrency(crypto_name)  # Create the cryptocurrency object for each symbol
+            values.append(crypto.getPrice() * quantity)
+            labels.append(f"{crypto_name} ({crypto.name})")
 
         # Plot the pie chart
         plt.figure(figsize=(8, 8))
@@ -48,20 +87,4 @@ class Portfolio:
         plt.title("Portfolio Allocation")
         plt.show()
         
-        
-# Example usage
-portfolio = Portfolio()
 
-# Adding cryptos
-bitcoin = Cryptocurrency("bitcoin", "BTC")
-ethereum = Cryptocurrency("ethereum", "ETH")
-portfolio.addCrypto(bitcoin, 3)
-portfolio.addCrypto(ethereum, 2)
-
-
-# Viewing the portfolio and total value
-for symbol, (crypto, quantity) in portfolio.holdings.items():
-    print(f"{quantity} units of {crypto.name} ({crypto.symbol}) at £{crypto.getPrice()} each")
-print(f"Portfolio total value: £{portfolio.calculateTotalValue()}")
-
-portfolio.analytics()
