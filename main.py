@@ -1,11 +1,12 @@
 from user import UserManager
 from cryptocurrency import Cryptocurrency
 from portfolio import Portfolio
+import pandas as pd
 
 def main():
-    # Initialize the UserManager and Portfolio
+    # Initialize the UserManager
     user_manager = UserManager()
-    portfolio = None  # No portfolio unless the user logs in
+    portfolio = None  # Portfolio is created only after login
     logged_in = False
 
     while True:
@@ -16,7 +17,8 @@ def main():
         print("4. Remove Cryptocurrency")
         print("5. View Portfolio Value")
         print("6. Portfolio Analytics")
-        print("7. Exit")
+        print("7. View Cryptocurrency List")
+        print("8. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -34,26 +36,24 @@ def main():
                 print(auth_message)
                 if auth_message == "Login successful.":
                     logged_in = True
-                    portfolio = Portfolio()  # Create a new portfolio for the logged-in user
+                    portfolio = Portfolio(email)  # Create a portfolio for the logged-in user
+                    portfolio.load_portfolio()
 
             case "3":  # Add Cryptocurrency
                 if not logged_in:
                     print("Please log in to access this feature.")
                     continue
                 name = input("Enter the cryptocurrency name (e.g., bitcoin): ")
-                symbol = input("Enter the cryptocurrency symbol (e.g., BTC): ")
                 quantity = int(input("Enter the quantity: "))
-                crypto = Cryptocurrency(name, symbol)
-                portfolio.addCrypto(crypto, quantity)
-                print(f"Added {quantity} of {name} ({symbol}) to your portfolio.")
+                portfolio.addCrypto(name, quantity)
 
             case "4":  # Remove Cryptocurrency
                 if not logged_in:
                     print("Please log in to access this feature.")
                     continue
-                symbol = input("Enter the cryptocurrency symbol to remove: ")
+                crypto_name = input("Enter the cryptocurrency name to remove: ")
                 quantity = int(input("Enter the quantity to remove: "))
-                portfolio.removeCrypto(symbol, quantity)
+                portfolio.removeCrypto(crypto_name, quantity)
 
             case "5":  # View Portfolio Value
                 if not logged_in:
@@ -67,7 +67,23 @@ def main():
                     continue
                 portfolio.analytics()
 
-            case "7":  # Exit
+            case "7": # Cryptocurrency List
+                coins = ["bitcoin", "ethereum", "tether", "solana", "dogecoin", "cardano"]
+                for coin in coins:
+                    print(coin)
+                    
+                coin_input = input("Which coin would you like to view? ")
+                if coin_input in coins:
+                    crypto = Cryptocurrency(coin_input)
+                    print(f"Price: {crypto.fetch_real_time_data()['price']}")
+                    print(f"Market Cap: {crypto.fetch_real_time_data()['marketCap']}")
+                    print(f"Supply: {crypto.fetch_real_time_data()['supply']}")
+                else:
+                    print("Coin is not supported by this application.")
+                    continue
+                    
+            
+            case "8":  # Exit
                 print("Goodbye!")
                 break
 
