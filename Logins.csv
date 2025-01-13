@@ -1,4 +1,5 @@
-Emails,Passwords
-alex@gmail.com,aaaaa
-seth@gmail.com,bbbbb
-rachel@gmail.com,ccccc
+Emails,Passwords,Portfolio
+alex@gmail.com,aaaaa,"ethereum:100,cardano:200"
+seth@gmail.com,bbbbb,"bitcoin:5,ethereum:200"
+rachel@gmail.com,ccccc,
+ajwad@gmail.com,eeeee,bitcoin:10
