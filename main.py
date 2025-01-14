@@ -78,6 +78,7 @@ def main():
                     print(f"Price: {crypto.fetch_real_time_data()['price']}")
                     print(f"Market Cap: {crypto.fetch_real_time_data()['marketCap']}")
                     print(f"Supply: {crypto.fetch_real_time_data()['supply']}")
+                    crypto.plot_price_trend()
                 else:
                     print("Coin is not supported by this application.")
                     continue

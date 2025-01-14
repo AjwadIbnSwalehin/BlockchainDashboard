@@ -1,6 +1,8 @@
 import requests
 from dotenv import load_dotenv
 import os
+import matplotlib.pyplot as plt
+from datetime import datetime
 
 def configure():
     load_dotenv()
@@ -57,3 +59,38 @@ class Cryptocurrency:
             print(f"API request error: {e}")
             return None
 
+    def fetch_trend_data(self):
+        vs_currency = "gbp"
+        days = "30"
+        url = f"https://api.coingecko.com/api/v3/coins/{self.name}/market_chart"
+        params = {"vs_currency": vs_currency, "days": days}
+        headers = {"accept": "application/json"}
+        
+        try:
+            response = requests.get(url, params=params, headers=headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching data for {self.name}: {e}")
+            return None
+
+    def plot_price_trend(self):
+        trend_data = self.fetch_trend_data()  # Call the method to get the data
+        if not trend_data:
+            print(f"Trend data for {self.name} could not be retrieved.")
+            return
+
+        timestamps = [datetime.utcfromtimestamp(price[0] / 1000) for price in trend_data["prices"]]
+        prices = [price[1] for price in trend_data["prices"]]
+
+        # Plot the trend line
+        plt.figure(figsize=(10, 5))
+        plt.plot(timestamps, prices, label=self.name.capitalize(), color="blue")
+        plt.title(f"{self.name.capitalize()} Price Trend (Last 30 Days)")
+        plt.xlabel("Date")
+        plt.ylabel("Price (GBP)")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+        
