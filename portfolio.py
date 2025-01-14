@@ -22,6 +22,7 @@ class Portfolio:
         return portfolio_data
     
     def addCrypto(self, crypto, quantity=1):
+        # Checks if crypto is in the tradeable ones
         if crypto in self.coins:
             if crypto in self.holdings:
                 # If already present, increase the quantity
@@ -39,6 +40,7 @@ class Portfolio:
                 print(coin)
     
     def removeCrypto(self, crypto, quantity=1):
+        # Checks if crypto is stored in portfolio
         if crypto in self.holdings:
             current_quantity = self.holdings[crypto]
             if current_quantity <= quantity:
